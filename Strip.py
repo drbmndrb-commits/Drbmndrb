@@ -277,6 +277,6 @@ def Stripe1(ccx):
 
 
 if __name__ == '__main__':
-    test_card = "5294158321468738|12|2026|904"
+    test_card = "4147980686723494|01|2033|645"
     result = Stripe1(test_card)
     print(f'\n📇 Card: {test_card}\n📊 Result: {result}')
